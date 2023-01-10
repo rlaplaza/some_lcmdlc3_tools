@@ -136,6 +136,10 @@ if [ -f ${job_directory}/${pname}.info ]; then
 else
    echo " " > .xcontrol.sample
 fi
+if [ -f ${job_directory}/${pname}.scan ]; then
+   echo "Scan file found!"
+   cp ${job_directory}/${pname}.scan scan.inp
+fi
 
 
 echo "#!/bin/bash
@@ -155,8 +159,13 @@ mkdir ${tmpdir}
 cd ${tmpdir}
 cp ${curdir}/${inpname} ${tmpdir}
 cp ${curdir}/constraints.inp ${tmpdir}/constraints.inp
+cp ${curdir}/scan.inp ${tmpdir}/scan.inp
 
-xtb -i ${inpname} --opt
+if [ -f scan.inp ]; then
+   xtb ${inpname} --opt --inputi scan.inp
+else
+   xtb -i ${inpname} --opt
+fi
 if [ ${checker} -eq 0 ]; then
    echo "XTB seems to have terminated normally."
 else 
