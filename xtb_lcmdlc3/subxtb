@@ -123,7 +123,7 @@ tmpdir='$SLURM_TMPDIR/$SLURM_JOB_ID'
 curdir='$SLURM_SUBMIT_DIR'
 checker='$?'
 
-echo "Ready to create jobfile ${name}.job towards ${soutput}"
+echo "Ready to create jobfile ${name}.job towards ${loutput}"
 if [ -f ${job_directory}/${pname}.info ]; then
    echo "Constraint file found!"
    cp ${job_directory}/${pname}.info .xcontrol.sample
@@ -138,7 +138,7 @@ fi
 
 echo "#!/bin/bash
 #SBATCH -J ${name}
-#SBATCH -o ${soutput}
+#SBATCH -o ${loutput}
 #SBATCH --mem=${memory}
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=${cpunr}
