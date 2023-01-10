@@ -167,6 +167,7 @@ else
 fi
 
 cp xtbopt.xyz ${curdir}/${name}_opt.xyz
+cp xtb*.log ${curdir}
 if [ ${checker} -eq 0 ]; then
    find . ! -name '*' -type f -exec rm -f {} +
    rm -rf ${tmpdir}
