@@ -11,7 +11,7 @@ export PATH=$(pwd):/home/laplaza/Software/xtb/_build:$PATH
 function is_bin_in_path {
      builtin type -P "$1" &> /dev/null
 }
-module load gaussian/g16-C.01
+module load gaussian/g16/A.03
 is_bin_in_path xtb  && echo "Found xtb." || echo "No xtb found. Exit!"  
 is_bin_in_path crest  && echo "Found crest." || echo "No crest found. Exit!" 
 is_bin_in_path g16  && echo "Found g16." || echo "No g16 found. Exit!" 

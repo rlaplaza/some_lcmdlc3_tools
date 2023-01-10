@@ -1,0 +1,175 @@
+#!/bin/bash
+
+# We assume running this from the script directory
+# Run as ./subcrest myinput.xyz 
+# Will submit two jobs by default, where the first one is conformational exploration with crest
+# and the second one relies on the kmca.py code by R.Laplaza which should be in this directory
+# The second job will be submitted with a dependency to the first job
+# and will run after the crest job finishes (if it finishes) properly.
+
+# To run only the second job, include kmca after the xyz file, like
+# ./subcrest myinput.xyz kmca
+# And have fun. To change kmca parameters, edit the kmca.py executable. To change crest parameters
+# edit the command line call in this file.
+
+export PATH=/home/laplaza/Software/xtb/_build:$PATH
+
+cpunr='8'
+memory='2000'
+
+function is_bin_in_path {
+     builtin type -P "$1" &> /dev/null
+}
+
+function qsbatch {
+    sbr="$(sbatch "$@")"
+    if [[ "$sbr" =~ Submitted\ batch\ job\ ([0-9]+) ]]; then
+        echo "${BASH_REMATCH[1]}"
+        exit 0
+    else
+        echo "sbatch failed"
+        exit 1
+    fi
+}
+
+function usage
+{
+    cat <<-EOF
+
+        NAME
+            subcrest - CREST submission script
+
+        SYNTAX
+            subcrest [ options ] <filename>
+
+        DESCRIPTION
+            Submits a CREST conformer sampling  calculation with the xyz input file <filename>.
+            You may specify <filename> with or without extension "{ .xyz }", but the real
+            real existing input file must have one of the suffixes. 
+
+            The kmca script will be executed immediately after, so kmca.py should be available in
+            the same directory.
+
+        OPTIONS
+
+            -m <mem>
+                Request a queue with a job memory of <mem> MB. The default
+                value for <mem> is $memory MB.
+
+            -p <cpunr>
+                If you specify the -p option, you can request a parallel
+                execution of the job with more than one CPU, which is the
+                default. 
+
+
+EOF
+
+    exit 2
+}
+
+function settings()
+{
+    OPTIND=1
+
+    while getopts :hkm:N:n:o:p:v: options ; do
+        case $options in
+
+            m) memory=$OPTARG ;;
+
+            p) CMDOPT_P="1"
+               cpunr=$OPTARG ;;
+
+           \?) printExit E "Invalid option: -$OPTARG." ;;
+
+        esac
+    done
+}
+
+
+function testFile
+{
+    if [ ! -r "$1" -o ! -f "$1" ] ; then
+        if [ "$2" = "return" ] ; then
+            returncode="-1"
+        else
+            printExit E "Inputfile \"$1\" was not found."
+        fi
+    else
+        returncode="0"
+    fi
+
+    return "$returncode"
+}
+
+# Basic checks: input exists, basic executables found, etc.
+is_bin_in_path xtb  && echo "Found xtb." || printExit E "Could not find xtb executable."
+is_bin_in_path crest  && echo "Found crest." || printExit E "Could not find crest executable."
+[ -z "$1" ] && usage
+job_directory=$(pwd)
+input=${1}
+pname="${1%%.xyz}"
+name="${pname##*/}"
+inpname="${name}.xyz"
+testFile "$inpname"
+
+settings "$@"
+
+#
+# Shift the arguments up to the input without the option prefix "-".
+# This should be the filename.
+#
+
+shift $((OPTIND-1))
+
+
+
+loutput="${name}.out"
+natoms=$(head -n 1 ${1})
+tmpdir='$SLURM_TMPDIR/$SLURM_JOB_ID'
+curdir='$SLURM_SUBMIT_DIR'
+checker='$?'
+
+echo "Ready to create jobfile ${name}.job towards ${soutput}"
+if [ -f ${job_directory}/${pname}.info ]; then
+   echo "Constraint file found!"
+   cp ${job_directory}/${pname}.info .xcontrol.sample
+else
+   echo " " > .xcontrol.sample
+fi
+
+
+echo "#!/bin/bash
+#SBATCH -J ${name}
+#SBATCH -o ${soutput}
+#SBATCH --mem=${memory}
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=${cpunr}
+#SBATCH --time=3-00:00:00
+module load intel/19.0.4
+ulimit -s unlimited
+export OMP_STACKSIZE=2G
+export OMP_MAX_ACTIVE_LEVELS=1
+export OMP_NUM_THREADS=8,1
+export MKL_NUM_THREADS=8
+mkdir ${tmpdir}
+cd ${tmpdir}
+cp ${curdir}/${inpname} ${tmpdir}
+cp ${curdir}/constraints.inp ${tmpdir}/constraints.inp
+
+xtb -i ${inpname} --opt
+if [ ${checker} -eq 0 ]; then
+   echo "XTB seems to have terminated normally."
+else 
+   echo "Run terminated abnormally."
+fi
+
+cp xtbopt.xyz ${curdir}/${name}_opt.xyz
+if [ ${checker} -eq 0 ]; then
+   find . ! -name '*' -type f -exec rm -f {} +
+   rm -rf ${tmpdir}
+fi
+exit " > ${name}.job
+
+sbatch ${name}.job)
+
+
