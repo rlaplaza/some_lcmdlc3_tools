@@ -170,6 +170,6 @@ if [ ${checker} -eq 0 ]; then
 fi
 exit " > ${name}.job
 
-sbatch ${name}.job)
+sbatch ${name}.job
 
 
