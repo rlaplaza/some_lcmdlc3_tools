@@ -1,16 +1,10 @@
 #!/bin/bash
 
 # We assume running this from the script directory
-# Run as ./subcrest myinput.xyz 
-# Will submit two jobs by default, where the first one is conformational exploration with crest
-# and the second one relies on the kmca.py code by R.Laplaza which should be in this directory
-# The second job will be submitted with a dependency to the first job
-# and will run after the crest job finishes (if it finishes) properly.
+# Run as ./subcrest myinput.xyz
 
-# To run only the second job, include kmca after the xyz file, like
-# ./subcrest myinput.xyz kmca
-# And have fun. To change kmca parameters, edit the kmca.py executable. To change crest parameters
-# edit the command line call in this file.
+# Constraints can be included by either writing a file called myinput.info or constraints.inp
+# Scans can be performed by either writing a file called myinput.scan or scan.inp
 
 export PATH=/home/laplaza/Software/xtb/_build:$PATH
 
@@ -158,11 +152,11 @@ export MKL_NUM_THREADS=8
 mkdir ${tmpdir}
 cd ${tmpdir}
 cp ${curdir}/${inpname} ${tmpdir}
-cp ${curdir}/constraints.inp ${tmpdir}/constraints.inp
+cp ${curdir}/constraints.inp ${tmpdir}/.xcontrol.sample
 cp ${curdir}/scan.inp ${tmpdir}/scan.inp
 
 if [ -f scan.inp ]; then
-   xtb ${inpname} --opt --inputi scan.inp
+   xtb ${inpname} --opt --input scan.inp
 else
    xtb -i ${inpname} --opt
 fi
