@@ -134,6 +134,18 @@ if [ -f ${job_directory}/${pname}.scan ]; then
    echo "Scan file found!"
    cp ${job_directory}/${pname}.scan scan.inp
 fi
+if [ -f ${job_directory}/${pname}.chrg ]; then
+   echo "Scan file found!"
+   cp ${job_directory}/${pname}.chrg .CHRG
+else
+   echo " " > .CHRG
+fi
+if [ -f ${job_directory}/${pname}.uhf ]; then
+   echo "Scan file found!"
+   cp ${job_directory}/${pname}.uhf .UHF
+else
+   echo " " > .UHF
+fi
 
 
 echo "#!/bin/bash
@@ -152,8 +164,19 @@ export MKL_NUM_THREADS=8
 mkdir ${tmpdir}
 cd ${tmpdir}
 cp ${curdir}/${inpname} ${tmpdir}
-cp ${curdir}/constraints.inp ${tmpdir}/.xcontrol.sample
-cp ${curdir}/scan.inp ${tmpdir}/scan.inp
+
+if [ -f ${curdir}/constraints.inp ]; then
+   cp ${curdir}/constraints.inp ${tmpdir}/.xcontrol.sample
+fi
+if [ -f ${curdir}/scan.inp ]; then
+   cp ${curdir}/scan.inp ${tmpdir}/scan.inp
+fi
+if [ -f ${curdir}/.CHRG ]; then
+   cp ${curdir}/.CHRG ${tmpdir}/.CHRG
+fi
+if [ -f ${curdir}/.UHF ]; then
+   cp ${curdir}/.UHF ${tmpdir}/.UHF
+fi
 
 if [ -f scan.inp ]; then
    xtb ${inpname} --opt --input scan.inp
