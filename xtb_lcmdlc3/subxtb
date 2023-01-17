@@ -5,6 +5,7 @@
 
 # Constraints can be included by either writing a file called myinput.info or constraints.inp
 # Scans can be performed by either writing a file called myinput.scan or scan.inp
+# Charge and multiplicity can be accounted for by including plain text files called myinput.chrf and myinput.uhf
 
 export PATH=/home/laplaza/Software/xtb/_build:$PATH
 
@@ -39,10 +40,7 @@ function usage
         DESCRIPTION
             Submits a CREST conformer sampling  calculation with the xyz input file <filename>.
             You may specify <filename> with or without extension "{ .xyz }", but the real
-            real existing input file must have one of the suffixes. 
-
-            The kmca script will be executed immediately after, so kmca.py should be available in
-            the same directory.
+            real existing input file must have the xyz suffix. 
 
         OPTIONS
 
